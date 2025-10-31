@@ -1,0 +1,25 @@
+{
+  "name": "file-manager",
+  "version": "1.0.0",
+  "description": "Program manages files using CLI like bash terminal does.",
+  "keywords": [
+    "file-manager",
+    "CLI"
+  ],
+  "homepage": "https://github.com/IrakliAmbroladze/file-manager#readme",
+  "bugs": {
+    "url": "https://github.com/IrakliAmbroladze/file-manager/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/IrakliAmbroladze/file-manager.git"
+  },
+  "license": "ISC",
+  "author": "Irakli Ambroladze",
+  "type": "module",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  }
+}
