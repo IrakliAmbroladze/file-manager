@@ -1,0 +1,97 @@
+import { dirname, resolve } from "node:path";
+import { homedir } from "node:os";
+import { access, constants, readdir, readFile } from "node:fs/promises";
+import { read } from "./commands/cat.js";
+
+export const actionMap = {
+  up: ({ curDirectory }) => {
+    return curDirectory === homedir() ? curDirectory : dirname(curDirectory);
+  },
+  cd: async ({ curDirectory, args }) => {
+    const target = args[0];
+    if (args.length === 0 || target === "") {
+      console.log("Operation failed: please provide destination path");
+      return curDirectory;
+    }
+    if (target === "/") return homedir();
+
+    const resolved = resolve(curDirectory, target);
+    try {
+      await access(resolved, constants.R_OK | constants.W_OK);
+    } catch (error) {
+      console.log("\nOperation failed");
+      return curDirectory;
+    }
+    return resolved;
+  },
+  ls: async ({ curDirectory }) => {
+    try {
+      const files = await readdir(curDirectory);
+      for (const file of files) console.log(file);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      return curDirectory;
+    }
+  },
+  cat: async ({ curDirectory, args }) => {
+    try {
+      const target = args[0];
+      if (args.length === 0 || target === "") {
+        throw new Error("please provide file name");
+      }
+
+      const resolved = resolve(curDirectory, target);
+      await access(resolved, constants.R_OK | constants.W_OK);
+      await read(resolved);
+    } catch (error) {
+      if (error instanceof Error) {
+        console.log("Operation failed: ", error.message);
+      } else {
+        console.log("Uknown error: ", error);
+      }
+    } finally {
+      return curDirectory;
+    }
+  },
+  add: (directory) => {
+    console.log("test");
+    return directory === homedir() ? directory : dirname(directory);
+  },
+  mkdir: (directory) => {
+    console.log("test");
+    return directory === homedir() ? directory : dirname(directory);
+  },
+  rn: (directory) => {
+    console.log("test");
+    return directory === homedir() ? directory : dirname(directory);
+  },
+  cp: (directory) => {
+    console.log("test");
+    return directory === homedir() ? directory : dirname(directory);
+  },
+  mv: (directory) => {
+    console.log("test");
+    return directory === homedir() ? directory : dirname(directory);
+  },
+  rm: (directory) => {
+    console.log("test");
+    return directory === homedir() ? directory : dirname(directory);
+  },
+  os: (directory) => {
+    console.log("test");
+    return directory === homedir() ? directory : dirname(directory);
+  },
+  hash: (directory) => {
+    console.log("test");
+    return directory === homedir() ? directory : dirname(directory);
+  },
+  compress: (directory) => {
+    console.log("test");
+    return directory === homedir() ? directory : dirname(directory);
+  },
+  decompress: (directory) => {
+    console.log("test");
+    return directory === homedir() ? directory : dirname(directory);
+  },
+};

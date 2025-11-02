@@ -6,6 +6,9 @@ export const getUsername = () => {
       short: "u",
     },
   };
-  const { values } = parseArgs({ options });
-  return values.username ?? "Anonymous";
+  const { values } = parseArgs({
+    options,
+    strict: false,
+  });
+  return values.username || "Anonymous";
 };
