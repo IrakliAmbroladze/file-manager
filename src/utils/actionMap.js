@@ -90,9 +90,16 @@ export const actionMap = {
       return curDirectory;
     }
   },
-  mv: (directory) => {
-    console.log("test");
-    return directory === homedir() ? directory : dirname(directory);
+  mv: async ({ curDirectory, args }) => {
+    try {
+      const copied = await actionMap.cp({ curDirectory, args });
+      if (!copied) throw new Error("Copy failed. Move aborted.");
+      await actionMap.rm({ curDirectory, args });
+    } catch (error) {
+      customError(error);
+    } finally {
+      return curDirectory;
+    }
   },
   rm: async ({ curDirectory, args }) => {
     try {
