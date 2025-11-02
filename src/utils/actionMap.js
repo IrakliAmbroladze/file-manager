@@ -1,6 +1,6 @@
-import { dirname, resolve } from "node:path";
+import { dirname, resolve, join } from "node:path";
 import { homedir } from "node:os";
-import { access, constants, readdir } from "node:fs/promises";
+import { access, constants, readdir, stat } from "node:fs/promises";
 import { read } from "./commands/cat.js";
 import { createEmptyFile } from "./commands/create.js";
 import { resolvePath } from "./resolvePath.js";
@@ -36,7 +36,19 @@ export const actionMap = {
   ls: async ({ curDirectory }) => {
     try {
       const files = await readdir(curDirectory);
-      for (const file of files) console.log(file);
+      const result = [];
+
+      for (const file of files) {
+        const filePath = join(curDirectory, file);
+        const stats = await stat(filePath);
+
+        result.push({
+          Name: file,
+          Type: stats.isDirectory() ? "directory" : "file",
+        });
+      }
+
+      console.table(result);
     } catch (error) {
       customError(error);
     } finally {
