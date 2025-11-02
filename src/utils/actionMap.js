@@ -4,6 +4,7 @@ import { access, constants, readdir, readFile } from "node:fs/promises";
 import { read } from "./commands/cat.js";
 import { createEmptyFile } from "./commands/create.js";
 import { resolvePath } from "./resolvePath.js";
+import { customError } from "./customError.js";
 
 export const actionMap = {
   up: ({ curDirectory }) => {
@@ -30,8 +31,8 @@ export const actionMap = {
     try {
       const files = await readdir(curDirectory);
       for (const file of files) console.log(file);
-    } catch (err) {
-      console.error(err);
+    } catch (error) {
+      customError(error);
     } finally {
       return curDirectory;
     }
@@ -42,11 +43,7 @@ export const actionMap = {
       await access(resolved, constants.R_OK | constants.W_OK);
       await read(resolved);
     } catch (error) {
-      if (error instanceof Error) {
-        console.log("Operation failed: ", error.message);
-      } else {
-        console.log("Uknown error: ", error);
-      }
+      customError(error);
     } finally {
       return curDirectory;
     }
@@ -56,11 +53,7 @@ export const actionMap = {
       const resolved = resolvePath(curDirectory, args);
       await createEmptyFile(resolved);
     } catch (error) {
-      if (error instanceof Error) {
-        console.log("Operation failed: ", error.message);
-      } else {
-        console.log("Uknown error: ", error);
-      }
+      customError(error);
     } finally {
       return curDirectory;
     }
