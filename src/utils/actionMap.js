@@ -8,6 +8,7 @@ import { customError } from "./customError.js";
 import { createDirectory } from "./commands/createDirectory.js";
 import { renameFile } from "./commands/renameFile.js";
 import { copyFileWithStreamAPI } from "./commands/copyFile.js";
+import { deleteFile } from "./commands/deleteFile.js";
 
 export const actionMap = {
   up: ({ curDirectory }) => {
@@ -93,9 +94,15 @@ export const actionMap = {
     console.log("test");
     return directory === homedir() ? directory : dirname(directory);
   },
-  rm: (directory) => {
-    console.log("test");
-    return directory === homedir() ? directory : dirname(directory);
+  rm: async ({ curDirectory, args }) => {
+    try {
+      const resolved = resolvePath(curDirectory, args);
+      await deleteFile(resolved);
+    } catch (error) {
+      customError(error);
+    } finally {
+      return curDirectory;
+    }
   },
   os: (directory) => {
     console.log("test");
