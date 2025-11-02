@@ -3,6 +3,7 @@ import { homedir } from "node:os";
 import { access, constants, readdir, readFile } from "node:fs/promises";
 import { read } from "./commands/cat.js";
 import { createEmptyFile } from "./commands/create.js";
+import { resolvePath } from "./resolvePath.js";
 
 export const actionMap = {
   up: ({ curDirectory }) => {
@@ -37,12 +38,7 @@ export const actionMap = {
   },
   cat: async ({ curDirectory, args }) => {
     try {
-      const target = args[0];
-      if (args.length === 0 || target === "") {
-        throw new Error("please provide file name");
-      }
-
-      const resolved = resolve(curDirectory, target);
+      const resolved = resolvePath(curDirectory, args);
       await access(resolved, constants.R_OK | constants.W_OK);
       await read(resolved);
     } catch (error) {
@@ -57,12 +53,7 @@ export const actionMap = {
   },
   add: async ({ curDirectory, args }) => {
     try {
-      const target = args[0];
-      if (args.length === 0 || target === "") {
-        throw new Error("please provide file name");
-      }
-
-      const resolved = resolve(curDirectory, target);
+      const resolved = resolvePath(curDirectory, args);
       await createEmptyFile(resolved);
     } catch (error) {
       if (error instanceof Error) {
