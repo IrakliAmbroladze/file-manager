@@ -11,6 +11,7 @@ import { copyFileWithStreamAPI } from "./commands/copyFile.js";
 import { deleteFile } from "./commands/deleteFile.js";
 import { compressFile, decompressFile } from "./commands/zip.js";
 import { calculateHash } from "./commands/calcHash.js";
+import { printOSInfo } from "./commands/os.js";
 
 export const actionMap = {
   up: ({ curDirectory }) => {
@@ -135,9 +136,14 @@ export const actionMap = {
       return curDirectory;
     }
   },
-  os: (directory) => {
-    console.log("test");
-    return directory === homedir() ? directory : dirname(directory);
+  os: async ({ curDirectory, args }) => {
+    try {
+      printOSInfo(args);
+    } catch (error) {
+      customError(error);
+    } finally {
+      return curDirectory;
+    }
   },
   compress: async ({ curDirectory, args }) => {
     try {
