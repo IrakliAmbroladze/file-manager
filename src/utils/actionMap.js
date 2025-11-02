@@ -1,6 +1,6 @@
-import { dirname, resolve } from "node:path";
+import { dirname, resolve, join } from "node:path";
 import { homedir } from "node:os";
-import { access, constants, readdir } from "node:fs/promises";
+import { access, constants, readdir, stat } from "node:fs/promises";
 import { read } from "./commands/cat.js";
 import { createEmptyFile } from "./commands/create.js";
 import { resolvePath } from "./resolvePath.js";
@@ -9,6 +9,9 @@ import { createDirectory } from "./commands/createDirectory.js";
 import { renameFile } from "./commands/renameFile.js";
 import { copyFileWithStreamAPI } from "./commands/copyFile.js";
 import { deleteFile } from "./commands/deleteFile.js";
+import { compressFile, decompressFile } from "./commands/zip.js";
+import { calculateHash } from "./commands/calcHash.js";
+import { printOSInfo } from "./commands/os.js";
 
 export const actionMap = {
   up: ({ curDirectory }) => {
@@ -34,7 +37,19 @@ export const actionMap = {
   ls: async ({ curDirectory }) => {
     try {
       const files = await readdir(curDirectory);
-      for (const file of files) console.log(file);
+      const result = [];
+
+      for (const file of files) {
+        const filePath = join(curDirectory, file);
+        const stats = await stat(filePath);
+
+        result.push({
+          Name: file,
+          Type: stats.isDirectory() ? "directory" : "file",
+        });
+      }
+
+      console.table(result);
     } catch (error) {
       customError(error);
     } finally {
@@ -111,20 +126,57 @@ export const actionMap = {
       return curDirectory;
     }
   },
-  os: (directory) => {
-    console.log("test");
-    return directory === homedir() ? directory : dirname(directory);
+  hash: async ({ curDirectory, args }) => {
+    try {
+      const resolved = resolvePath(curDirectory, args);
+      await calculateHash(resolved);
+    } catch (error) {
+      customError(error);
+    } finally {
+      return curDirectory;
+    }
   },
-  hash: (directory) => {
-    console.log("test");
-    return directory === homedir() ? directory : dirname(directory);
+  os: async ({ curDirectory, args }) => {
+    try {
+      printOSInfo(args);
+    } catch (error) {
+      customError(error);
+    } finally {
+      return curDirectory;
+    }
   },
-  compress: (directory) => {
-    console.log("test");
-    return directory === homedir() ? directory : dirname(directory);
+  compress: async ({ curDirectory, args }) => {
+    try {
+      if (args.length < 2) {
+        throw new Error(
+          "please provide both of path to source and destination",
+        );
+      }
+
+      const source = resolve(curDirectory, args[0]);
+      const destination = resolve(curDirectory, args[1] + ".br");
+      await compressFile(source, destination);
+    } catch (error) {
+      customError(error);
+    } finally {
+      return curDirectory;
+    }
   },
-  decompress: (directory) => {
-    console.log("test");
-    return directory === homedir() ? directory : dirname(directory);
+  decompress: async ({ curDirectory, args }) => {
+    try {
+      if (args.length < 2) {
+        throw new Error(
+          "please provide both of path to source and destination",
+        );
+      }
+
+      const source = resolve(curDirectory, args[0]);
+      const destination = resolve(curDirectory, args[1]);
+      await decompressFile(source, destination);
+    } catch (error) {
+      customError(error);
+    } finally {
+      return curDirectory;
+    }
   },
 };
