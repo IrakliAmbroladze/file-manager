@@ -6,6 +6,7 @@ import { createEmptyFile } from "./commands/create.js";
 import { resolvePath } from "./resolvePath.js";
 import { customError } from "./customError.js";
 import { createDirectory } from "./commands/createDirectory.js";
+import { renameFile } from "./commands/renameFile.js";
 
 export const actionMap = {
   up: ({ curDirectory }) => {
@@ -69,9 +70,14 @@ export const actionMap = {
       return curDirectory;
     }
   },
-  rn: (directory) => {
-    console.log("test");
-    return directory === homedir() ? directory : dirname(directory);
+  rn: async ({ curDirectory, args }) => {
+    try {
+      await renameFile(curDirectory, args[0], args[1]);
+    } catch (error) {
+      customError(error);
+    } finally {
+      return curDirectory;
+    }
   },
   cp: (directory) => {
     console.log("test");
