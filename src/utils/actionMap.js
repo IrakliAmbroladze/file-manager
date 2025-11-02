@@ -1,6 +1,7 @@
 import { dirname, resolve } from "node:path";
 import { homedir } from "node:os";
-import { access, constants, readdir } from "node:fs/promises";
+import { access, constants, readdir, readFile } from "node:fs/promises";
+import { read } from "./commands/cat.js";
 
 export const actionMap = {
   up: ({ curDirectory }) => {
@@ -33,9 +34,25 @@ export const actionMap = {
       return curDirectory;
     }
   },
-  cat: (directory) => {
-    console.log("test");
-    return directory === homedir() ? directory : dirname(directory);
+  cat: async ({ curDirectory, args }) => {
+    try {
+      const target = args[0];
+      if (args.length === 0 || target === "") {
+        throw new Error("please provide file name");
+      }
+
+      const resolved = resolve(curDirectory, target);
+      await access(resolved, constants.R_OK | constants.W_OK);
+      await read(resolved);
+    } catch (error) {
+      if (error instanceof Error) {
+        console.log("Operation failed: ", error.message);
+      } else {
+        console.log("Uknown error: ", error);
+      }
+    } finally {
+      return curDirectory;
+    }
   },
   add: (directory) => {
     console.log("test");
