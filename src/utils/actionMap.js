@@ -1,10 +1,11 @@
 import { dirname, resolve } from "node:path";
 import { homedir } from "node:os";
-import { access, constants, readdir, readFile } from "node:fs/promises";
+import { access, constants, readdir } from "node:fs/promises";
 import { read } from "./commands/cat.js";
 import { createEmptyFile } from "./commands/create.js";
 import { resolvePath } from "./resolvePath.js";
 import { customError } from "./customError.js";
+import { createDirectory } from "./commands/createDirectory.js";
 
 export const actionMap = {
   up: ({ curDirectory }) => {
@@ -58,9 +59,15 @@ export const actionMap = {
       return curDirectory;
     }
   },
-  mkdir: (directory) => {
-    console.log("test");
-    return directory === homedir() ? directory : dirname(directory);
+  mkdir: async ({ curDirectory, args }) => {
+    try {
+      const resolved = resolvePath(curDirectory, args);
+      await createDirectory(resolved);
+    } catch (error) {
+      customError(error);
+    } finally {
+      return curDirectory;
+    }
   },
   rn: (directory) => {
     console.log("test");
