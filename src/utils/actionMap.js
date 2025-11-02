@@ -1,7 +1,14 @@
 import { dirname, resolve } from "node:path";
 import { homedir } from "node:os";
-import { access, constants, readdir, readFile } from "node:fs/promises";
+import { access, constants, readdir } from "node:fs/promises";
 import { read } from "./commands/cat.js";
+import { createEmptyFile } from "./commands/create.js";
+import { resolvePath } from "./resolvePath.js";
+import { customError } from "./customError.js";
+import { createDirectory } from "./commands/createDirectory.js";
+import { renameFile } from "./commands/renameFile.js";
+import { copyFileWithStreamAPI } from "./commands/copyFile.js";
+import { deleteFile } from "./commands/deleteFile.js";
 
 export const actionMap = {
   up: ({ curDirectory }) => {
@@ -28,55 +35,81 @@ export const actionMap = {
     try {
       const files = await readdir(curDirectory);
       for (const file of files) console.log(file);
-    } catch (err) {
-      console.error(err);
+    } catch (error) {
+      customError(error);
     } finally {
       return curDirectory;
     }
   },
   cat: async ({ curDirectory, args }) => {
     try {
-      const target = args[0];
-      if (args.length === 0 || target === "") {
-        throw new Error("please provide file name");
-      }
-
-      const resolved = resolve(curDirectory, target);
+      const resolved = resolvePath(curDirectory, args);
       await access(resolved, constants.R_OK | constants.W_OK);
       await read(resolved);
     } catch (error) {
-      if (error instanceof Error) {
-        console.log("Operation failed: ", error.message);
-      } else {
-        console.log("Uknown error: ", error);
-      }
+      customError(error);
     } finally {
       return curDirectory;
     }
   },
-  add: (directory) => {
-    console.log("test");
-    return directory === homedir() ? directory : dirname(directory);
+  add: async ({ curDirectory, args }) => {
+    try {
+      const resolved = resolvePath(curDirectory, args);
+      await createEmptyFile(resolved);
+    } catch (error) {
+      customError(error);
+    } finally {
+      return curDirectory;
+    }
   },
-  mkdir: (directory) => {
-    console.log("test");
-    return directory === homedir() ? directory : dirname(directory);
+  mkdir: async ({ curDirectory, args }) => {
+    try {
+      const resolved = resolvePath(curDirectory, args);
+      await createDirectory(resolved);
+    } catch (error) {
+      customError(error);
+    } finally {
+      return curDirectory;
+    }
   },
-  rn: (directory) => {
-    console.log("test");
-    return directory === homedir() ? directory : dirname(directory);
+  rn: async ({ curDirectory, args }) => {
+    try {
+      await renameFile(curDirectory, args[0], args[1]);
+    } catch (error) {
+      customError(error);
+    } finally {
+      return curDirectory;
+    }
   },
-  cp: (directory) => {
-    console.log("test");
-    return directory === homedir() ? directory : dirname(directory);
+  cp: async ({ curDirectory, args }) => {
+    try {
+      await copyFileWithStreamAPI(curDirectory, args[0], args[1]);
+    } catch (error) {
+      customError(error);
+    } finally {
+      return curDirectory;
+    }
   },
-  mv: (directory) => {
-    console.log("test");
-    return directory === homedir() ? directory : dirname(directory);
+  mv: async ({ curDirectory, args }) => {
+    try {
+      const copied = await actionMap.cp({ curDirectory, args });
+      if (!copied) throw new Error("Copy failed. Move aborted.");
+      await actionMap.rm({ curDirectory, args });
+    } catch (error) {
+      customError(error);
+    } finally {
+      return curDirectory;
+    }
   },
-  rm: (directory) => {
-    console.log("test");
-    return directory === homedir() ? directory : dirname(directory);
+  rm: async ({ curDirectory, args }) => {
+    try {
+      const resolved = resolvePath(curDirectory, args);
+      await deleteFile(resolved);
+    } catch (error) {
+      customError(error);
+    } finally {
+      return curDirectory;
+    }
   },
   os: (directory) => {
     console.log("test");
