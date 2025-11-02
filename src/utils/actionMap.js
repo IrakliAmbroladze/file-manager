@@ -9,6 +9,7 @@ import { createDirectory } from "./commands/createDirectory.js";
 import { renameFile } from "./commands/renameFile.js";
 import { copyFileWithStreamAPI } from "./commands/copyFile.js";
 import { deleteFile } from "./commands/deleteFile.js";
+import { compressFile, decompressFile } from "./commands/zip.js";
 
 export const actionMap = {
   up: ({ curDirectory }) => {
@@ -119,12 +120,38 @@ export const actionMap = {
     console.log("test");
     return directory === homedir() ? directory : dirname(directory);
   },
-  compress: (directory) => {
-    console.log("test");
-    return directory === homedir() ? directory : dirname(directory);
+  compress: async ({ curDirectory, args }) => {
+    try {
+      if (args.length < 2) {
+        throw new Error(
+          "please provide both of path to source and destination",
+        );
+      }
+
+      const source = resolve(curDirectory, args[0]);
+      const destination = resolve(curDirectory, args[1] + ".br");
+      await compressFile(source, destination);
+    } catch (error) {
+      customError(error);
+    } finally {
+      return curDirectory;
+    }
   },
-  decompress: (directory) => {
-    console.log("test");
-    return directory === homedir() ? directory : dirname(directory);
+  decompress: async ({ curDirectory, args }) => {
+    try {
+      if (args.length < 2) {
+        throw new Error(
+          "please provide both of path to source and destination",
+        );
+      }
+
+      const source = resolve(curDirectory, args[0]);
+      const destination = resolve(curDirectory, args[1]);
+      await decompressFile(source, destination);
+    } catch (error) {
+      customError(error);
+    } finally {
+      return curDirectory;
+    }
   },
 };
