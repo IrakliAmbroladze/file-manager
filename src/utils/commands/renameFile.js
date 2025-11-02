@@ -1,5 +1,5 @@
 import { resolve } from "node:path";
-import { rename, access } from "node:fs/promises";
+import { rename, access, constants } from "node:fs/promises";
 
 export const renameFile = async (dir, oldFileName, newFileName) => {
   if (!(oldFileName && newFileName)) {
@@ -9,12 +9,12 @@ export const renameFile = async (dir, oldFileName, newFileName) => {
 
   const newPath = resolve(dir, newFileName);
   try {
-    await access(oldPath);
+    await access(oldPath, constants.R_OK);
   } catch (e) {
     throw new Error("file does not exist");
   }
   try {
-    await access(newPath);
+    await access(newPath, constants.R_OK);
     throw new Error("file with the same name already exists");
   } catch (err) {
     if (err.code !== "ENOENT") {

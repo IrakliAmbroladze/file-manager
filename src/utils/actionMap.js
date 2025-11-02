@@ -7,6 +7,7 @@ import { resolvePath } from "./resolvePath.js";
 import { customError } from "./customError.js";
 import { createDirectory } from "./commands/createDirectory.js";
 import { renameFile } from "./commands/renameFile.js";
+import { copyFileWithStreamAPI } from "./commands/copyFile.js";
 
 export const actionMap = {
   up: ({ curDirectory }) => {
@@ -79,9 +80,14 @@ export const actionMap = {
       return curDirectory;
     }
   },
-  cp: (directory) => {
-    console.log("test");
-    return directory === homedir() ? directory : dirname(directory);
+  cp: async ({ curDirectory, args }) => {
+    try {
+      await copyFileWithStreamAPI(curDirectory, args[0], args[1]);
+    } catch (error) {
+      customError(error);
+    } finally {
+      return curDirectory;
+    }
   },
   mv: (directory) => {
     console.log("test");
