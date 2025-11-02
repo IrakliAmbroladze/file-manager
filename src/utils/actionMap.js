@@ -10,6 +10,7 @@ import { renameFile } from "./commands/renameFile.js";
 import { copyFileWithStreamAPI } from "./commands/copyFile.js";
 import { deleteFile } from "./commands/deleteFile.js";
 import { compressFile, decompressFile } from "./commands/zip.js";
+import { calculateHash } from "./commands/calcHash.js";
 
 export const actionMap = {
   up: ({ curDirectory }) => {
@@ -112,11 +113,17 @@ export const actionMap = {
       return curDirectory;
     }
   },
-  os: (directory) => {
-    console.log("test");
-    return directory === homedir() ? directory : dirname(directory);
+  hash: async ({ curDirectory, args }) => {
+    try {
+      const resolved = resolvePath(curDirectory, args);
+      await calculateHash(resolved);
+    } catch (error) {
+      customError(error);
+    } finally {
+      return curDirectory;
+    }
   },
-  hash: (directory) => {
+  os: (directory) => {
     console.log("test");
     return directory === homedir() ? directory : dirname(directory);
   },
