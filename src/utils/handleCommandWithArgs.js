@@ -1,14 +1,19 @@
 import { actionMap } from "./actionMap.js";
 
-export const handleCommandWithArgs = (curDirectory, rl, command, args) => {
+export const handleCommandWithArgs = async (
+  curDirectory,
+  rl,
+  command,
+  args,
+) => {
   if (command === ".exit") {
     rl.close();
     return;
   }
-  if (!Object.keys(actionMap).includes(command)) {
-    console.log("invalid input");
+  try {
+    return await actionMap[command]({ curDirectory, args });
+  } catch (error) {
+    console.log("\ninvalid input");
     return curDirectory;
   }
-  const action = actionMap[command];
-  return action(curDirectory);
 };

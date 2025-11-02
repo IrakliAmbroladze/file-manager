@@ -16,15 +16,15 @@ export const startCLI = async () => {
     output: process.stdout,
     completer,
   });
-  rl.on("line", (line) => {
+  rl.on("line", async (line) => {
     const [command, ...args] = line.split(" ");
-    curDirectory = handleCommandWithArgs(
+    curDirectory = await handleCommandWithArgs(
       curDirectory,
       rl,
       command.trim(),
       args,
     );
-    curDirectory && console.log("You are currently in", curDirectory, "\n");
+    curDirectory && console.log("\nYou are currently in", curDirectory, "\n");
   });
 
   return new Promise((resolve) => {
